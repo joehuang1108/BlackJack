@@ -81,6 +81,9 @@ public class BlackJack {
             super.paintComponent(g);
             try {
                 Image hiddenCardImage = new ImageIcon(getClass().getResource("./cards/BACK.png")).getImage();
+                if(!stayButton.isEnabled()){
+                    hiddenCardImage = new ImageIcon(getClass().getResource(hiddenCard.getImagePath())).getImage();
+                }
                 g.drawImage(hiddenCardImage, 20, 20, cardWidth, cardHeight, null);
             }
             catch (Exception e) {
@@ -99,13 +102,47 @@ public class BlackJack {
                 Card card = playerHand.get(i);
                 Image cardImage = new ImageIcon(getClass().getResource(card.getImagePath())).getImage();
                 g.drawImage(cardImage, 20 + (cardWidth + 5)*i, 320, cardWidth, cardHeight, null);
-            }   
+            }
+            
+            // Win/lose disaply and conditions
+            if(!stayButton.isEnabled()){
+                dealerSum = reduceDealerAce();
+                playerSum = reducePlayerAce();
+                System.out.println("STAY: ");
+                System.out.println(dealerSum);
+                System.out.println(playerSum);
+
+                String message = "";
+                // TODO: LOGIC - UPDATE MESSAGE 
+                if(playerSum > 21){
+                    message = "YOU LOSE!";
+                }
+                else if(dealerSum > 21){
+                    message = "YOU WIN!";
+                }
+                else if(playerSum == dealerSum){
+                    message = "TIE";
+                }
+                else if(playerSum > dealerSum){
+                    message = "YOU WIN!";
+                }
+                else if(playerSum < dealerSum){
+                    message = "YOU LOSE!";
+                }
+
+                g.setFont(new Font("Arial", Font.PLAIN, 30));
+                g.setColor(Color.white);
+                g.drawString(message, 220, 250);
+                resetButton.setEnabled(true);
+            }
+
         }
     };
 
     JPanel buttonPanel = new JPanel();
     JButton hitButton = new JButton("Hit");
     JButton stayButton = new JButton("Stay");
+    JButton resetButton = new JButton("Reset");
 
     public BlackJack() {
         startGame();
@@ -125,6 +162,9 @@ public class BlackJack {
         stayButton.setFocusable(false);
         buttonPanel.add(stayButton);
         frame.add(buttonPanel, BorderLayout.SOUTH);
+        resetButton.setFocusable(false);
+        resetButton.setEnabled(false);
+        buttonPanel.add(resetButton);
 
         // Hit button
         hitButton.addActionListener(new ActionListener() {
@@ -138,12 +178,13 @@ public class BlackJack {
                 playerHand.add(card);
                 if(reducePlayerAce() >= 21){     // disable hit button if sum already over 21
                     hitButton.setEnabled(false);
+                    stayButton.setEnabled(false);
                 }
                 gamePanel.repaint();
             }
         });
 
-
+        // Stay Button
         stayButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
                 hitButton.setEnabled(false);
@@ -162,12 +203,19 @@ public class BlackJack {
             }
         });
 
+        // Reset Button
+        resetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                hitButton.setEnabled(true);
+                stayButton.setEnabled(true);
+                resetButton.setEnabled(false);
+                startGame();
+                gamePanel.repaint();
+            }
+        });
+
         gamePanel.repaint();
 
-        // NEXT CLASS
-        // display hidden card after hit stay
-        // print out total sums (dealer/player)
-        // calculate win/lose 
         // add a reset button to play again 
 
         
@@ -263,7 +311,6 @@ public class BlackJack {
         while(playerSum > 21 && playerAceCount > 0){
             playerSum -= 10;
             playerAceCount -= 1;
-            System.out.println("New PlayerSUM: " + playerSum);
         }
         return playerSum;
     }
@@ -275,5 +322,4 @@ public class BlackJack {
         }
         return dealerSum;
     }
-
 }
